@@ -4,6 +4,7 @@
 	import FloatingBox from '$lib/components/UI/FloatingBox.svelte';
 	import Range from '$lib/components/Range.svelte';
 	import { formatSeconds } from '$lib/utils/utils';
+	import { ProgressRadial } from '@skeletonlabs/skeleton';
 
 	export let title: string;
 
@@ -16,15 +17,15 @@
 
 	$: src = currentSource.url;
 
-	let duration = 0;
+	let duration: number;
 	let currentTime = 0;
+	let prevTime = 0;
+	let changedQuality = false;
 	let paused = true;
 	let muted = true;
 	let volume = 1;
 	let ended = false;
 	let readyState: 0 | 1 | 2 | 3 | 4;
-
-	$: console.log(readyState ?? 'nothing');
 
 	let hoverTime = 0;
 
@@ -50,6 +51,7 @@
 		const box = container as any;
 		const enter = box.requestFullscreen ?? box.webkitRequestFullscreen ?? box.msRequestFullScreen;
 		enter.apply(box);
+		inFullScreen = true;
 	};
 
 	const exitFS = () => {
@@ -60,6 +62,7 @@
 			doc.webkitExitFullscreen ??
 			doc.msExitFullscreen;
 		exit.apply(doc);
+		inFullScreen = false;
 	};
 </script>
 
@@ -75,6 +78,12 @@
 		class="w-full h-full bg-black"
 		{src}
 		{poster}
+		on:canplay={() => {
+			if (!changedQuality) return;
+			currentTime = prevTime;
+			paused = false;
+			changedQuality = false;
+		}}
 		bind:readyState
 		bind:duration
 		bind:paused
@@ -85,17 +94,19 @@
 	>
 		<track kind="captions" />
 	</video>
-	{#if showControls || paused}
-		<div class="absolute top-0 flex flex-col w-full h-full justify-between">
+	<div class="absolute top-0 flex flex-col w-full h-full justify-between">
+		{#if (showControls || paused) && readyState && currentTime && !ended}
 			<div class="flex p-7 bg-gradient-to-b from-black w-full z-10" transition:fade>
 				<span class="font-bold text-xl">{title}</span>
 			</div>
-			<div
-				class="flex justify-center items-center w-full h-full"
-				on:click={() => (paused = !paused)}
-				on:keydown={() => {}}
-			>
-				{#if paused || ended}
+		{/if}
+		<div
+			class="flex justify-center items-center w-full h-full"
+			on:click={() => (paused = !paused)}
+			on:keydown={() => {}}
+		>
+			{#if (paused || ended || readyState !== 4 || changedQuality) && readyState}
+				{#if readyState === 4}
 					<button class="btn btn-icon-xl variant-filled-primary z-10" transition:fade>
 						<iconify-icon
 							class="text-3xl"
@@ -104,8 +115,14 @@
 								: 'material-symbols:play-arrow-rounded'}
 						/>
 					</button>
+				{:else}
+					<div transition:fade>
+						<ProgressRadial meter="stroke-primary-500" width="w-16" stroke={150} />
+					</div>
 				{/if}
-			</div>
+			{/if}
+		</div>
+		{#if (showControls || paused) && readyState && currentTime && !ended}
 			<div class:p-2={!inFullScreen} transition:fly={{ y: 10, duration: 200 }}>
 				<div
 					class:rounded-full={!inFullScreen}
@@ -123,7 +140,7 @@
 						bind:value={currentTime}
 						bind:hoverValue={hoverTime}
 						min={0}
-						max={duration}
+						max={duration ?? 0}
 						class="w-full"
 					>
 						<div
@@ -141,7 +158,7 @@
 						</div>
 					</Range>
 					<span class="whitespace-nowrap text-sm"
-						>{formatSeconds(currentTime)} / {formatSeconds(duration)}</span
+						>{formatSeconds(currentTime)} / {formatSeconds(duration ?? 0)}</span
 					>
 					<FloatingBox>
 						<button class="btn btn-icon variant-glass-surface" slot="content" on:click={() => {}}>
@@ -158,7 +175,10 @@
 									class:variant-filled-secondary={currentSource === source}
 									class:variant-glass-surface={currentSource !== source}
 									on:click={() => {
+										prevTime = currentTime;
+										paused = true;
 										currentSource = source;
+										changedQuality = true;
 									}}>{source.label}</button
 								>
 							{/each}
@@ -206,12 +226,11 @@
 					</button>
 				</div>
 			</div>
-		</div>
-	{/if}
+		{/if}
+	</div>
 </div>
 
 <svelte:window
-	on:fullscreenchange={() => (inFullScreen = !inFullScreen)}
 	on:keydown={(e) => {
 		switch (e.key) {
 			case ' ': {
@@ -223,7 +242,7 @@
 				break;
 			}
 			case 'l': {
-				duration - currentTime >= 10 ? (currentTime += 10) : (currentTime = duration);
+				duration ?? 0 - currentTime >= 10 ? (currentTime += 10) : (currentTime = duration ?? 0);
 				break;
 			}
 			case 'j': {
@@ -235,7 +254,7 @@
 				break;
 			}
 			case 'ArrowRight': {
-				duration - currentTime >= 10 ? (currentTime += 10) : (currentTime = duration);
+				duration ?? 0 - currentTime >= 10 ? (currentTime += 10) : (currentTime = duration ?? 0);
 				break;
 			}
 		}
