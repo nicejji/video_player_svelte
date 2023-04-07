@@ -1,27 +1,26 @@
 <script lang="ts">
+	export let offset = 1;
 	export let position: 'left' | 'right' | 'bottom' | 'top' = 'top';
 	export let shown = false;
-	export let style = '';
+	export let hide = false;
 
 	let hovered = false;
-	$: transformClasses = {
-		left: `top-[50%] right-[100%] translate-y-[-50%] translate-x-[-10px]`,
-		right: `top-[50%] left-[100%] translate-y-[-50%] translate-x-[10px]`,
-		top: `bottom-[100%] left-[50%] translate-x-[-50%] translate-y-[-10px]`,
-		bottom: `top-[100%] left-[50%] translate-x-[-50%] translate-y-[10px]`
+	$: transformStyles = {
+		left: `top: 50%; right: 100%; transform: translateY(-50%) translateX(-${offset}rem)`,
+		right: `top: 50%; left: 100%; transform: translateY(-50%) translateX(${offset}rem)`,
+		top: `bottom: 100%; left: 50%; transform: translateX(-50%) translateY(-${offset}rem)`,
+		bottom: `top: 100%; left: 50%; transform: translateX(-50%) translateY(${offset}rem)`
 	};
-
-	$: currentClass = `absolute ${transformClasses[position]} ${$$props.class || ''}`;
 </script>
 
 <div
 	class="relative"
-	{style}
+	style={$$props.style}
 	on:mouseenter={() => (hovered = true)}
 	on:mouseleave={() => (hovered = false)}
 >
-	<div class={currentClass}>
-		{#if hovered || shown}
+	<div style={`position: absolute; ${transformStyles[position]}`}>
+		{#if (hovered || shown) && !hide}
 			<slot name="box" />
 		{/if}
 	</div>

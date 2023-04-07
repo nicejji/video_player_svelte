@@ -1,9 +1,9 @@
 <script>
-	import VideoControls from '$lib/components/VideoControls.svelte';
+	import Player from '$lib/components/Player.svelte';
 </script>
 
 <div class="flex w-full h-full justify-center items-center">
-	<VideoControls
+	<Player
 		class="w-[1000px]"
 		title="Brawl Stars Trailer"
 		sources={[
