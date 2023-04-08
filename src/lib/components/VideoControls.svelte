@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { fly } from 'svelte/transition';
-	import PauseSwitch from './UI/PauseSwitch.svelte';
-	import TimeControl from './UI/TimeControl.svelte';
-	import QuialityControl from './UI/QuialityControl.svelte';
-	import VolumeControl from './UI/VolumeControl.svelte';
-	import FullscreenSwitch from './UI/FullscreenSwitch.svelte';
+	import PauseSwitch from '$lib/components/PauseSwitch.svelte';
+	import TimeControl from '$lib/components/TimeControl.svelte';
+	import QuialityControl from '$lib/components/QuialityControl.svelte';
+	import VolumeControl from '$lib/components/VolumeControl.svelte';
+	import FullscreenSwitch from '$lib/components/FullscreenSwitch.svelte';
 	export let paused: boolean;
 	export let currentTime: number;
 	export let duration: number;
