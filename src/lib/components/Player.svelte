@@ -42,6 +42,7 @@
 <div
 	class={`relative h-fit overflow-clip ${$$props.class}`}
 	class:rounded-xl={!inFullScreen}
+	bind:this={container}
 	on:mousemove={onMouseMove}
 	on:mouseleave={onMouseLeave}
 	on:focus={() => {}}
@@ -66,7 +67,7 @@
 				<span class="font-bold text-xl">{title}</span>
 			</div>
 			<div
-				class="flex justify-center items-center w-full h-full z-10"
+				class="flex justify-center items-center w-full h-full"
 				on:click={() => (paused = !paused)}
 				on:keydown={() => {}}
 			>
@@ -89,6 +90,7 @@
 			</div>
 			<VideoControls
 				bind:paused
+				bind:readyState
 				bind:currentTime
 				bind:volume
 				bind:muted
